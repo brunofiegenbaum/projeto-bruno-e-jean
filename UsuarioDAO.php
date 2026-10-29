@@ -21,10 +21,12 @@ class UsuarioDAO {
     }
     function atualizar($id, $nome, $email) {
         $comando = $this->conexao->prepare("UPDATE usuarios SET nome=?,email=? WHERE id_usuario=?");
-        return $comando->execute([$nome,$email,$id]);
+        $comando->execute([$nome,$email,$id]);
+        return $comando->rowCount();
     }
     function excluir($id) {
         $comando = $this->conexao->prepare("DELETE FROM usuarios WHERE id_usuario=?");
-        return $comando->execute([$id]);
+        $comando->execute([$id]);
+        return $comando->rowCount();
     }
 }
