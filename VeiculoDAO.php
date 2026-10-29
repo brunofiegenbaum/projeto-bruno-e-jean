@@ -21,10 +21,12 @@ class VeiculoDAO {
     }
     function atualizar($id, $id_usuario, $marca, $modelo, $ano, $preco, $quilometragem, $foto) {
         $comando = $this->conexao->prepare("UPDATE veiculos SET id_usuario=?,marca=?,modelo=?,ano=?,preco=?,quilometragem=?,foto=? WHERE id_veiculo=?");
-        return $comando->execute([$id_usuario,$marca,$modelo,$ano,$preco,$quilometragem,$foto,$id]);
+        $comando->execute([$id_usuario,$marca,$modelo,$ano,$preco,$quilometragem,$foto,$id]);
+        return $comando->rowCount();
     }
     function excluir($id) {
         $comando = $this->conexao->prepare("DELETE FROM veiculos WHERE id_veiculo=?");
-        return $comando->execute([$id]);
+        $comando->execute([$id]);
+        return $comando->rowCount();
     }
 }
