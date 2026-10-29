@@ -19,13 +19,10 @@ CREATE TABLE IF NOT EXISTS veiculos (
  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
 
--- Limpa somente os veiculos antigos.
-DELETE FROM veiculos;
-
--- Usuarios de teste para a Sprint 1 (somente se ainda nao houver usuarios).
+-- Insere usuarios de exemplo somente quando o email ainda nao existe.
 INSERT INTO usuarios (nome,email)
 SELECT 'Bruno','bruno@exemplo.com'
-WHERE NOT EXISTS (SELECT 1 FROM usuarios);
+WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='bruno@exemplo.com');
 INSERT INTO usuarios (nome,email)
 SELECT 'Jean','jean@exemplo.com'
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email='jean@exemplo.com');
