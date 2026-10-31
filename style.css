@@ -20,3 +20,12 @@ button { margin-top:18px; background:#386aaf; color:white; border:0; border-radi
 .card { background:#252525; padding:18px; max-width:500px; }
 .card form { padding:0; background:transparent; border:0; }
 @media(max-width:650px) { header { display:block; } nav { margin-top:12px; } }
+
+/* Acoes de usuarios: editar e excluir lado a lado, sem caixa no formulario */
+.acoes-usuario { white-space: nowrap; }
+.acoes-usuario .botao-editar,
+.acoes-usuario .excluir-usuario button { display: inline-block; background: #386aaf; color: white; border: 0; border-radius: 2px; padding: 8px 14px; font: inherit; line-height: normal; cursor: pointer; text-decoration: none; vertical-align: middle; }
+.acoes-usuario .botao-editar:hover,
+.acoes-usuario .excluir-usuario button:hover { background: #477fc8; text-decoration: none; }
+.acoes-usuario .excluir-usuario { display: inline-block; width: auto; max-width: none; padding: 0; margin: 0 0 0 8px; border: 0; background: transparent; vertical-align: middle; }
+.acoes-usuario .excluir-usuario button { margin: 0; }

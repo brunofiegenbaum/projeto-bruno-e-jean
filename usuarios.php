@@ -64,7 +64,7 @@ $usuarios = $dao->listar();
 <tr>
 <td><?php echo htmlspecialchars($item["nome"]); ?></td>
 <td><?php echo htmlspecialchars($item["email"]); ?></td>
-<td><a href="usuarios.php?id=<?php echo $item["id_usuario"]; ?>">Editar</a>
+<td class="acoes-usuario"><a class="botao-editar" href="usuarios.php?id=<?php echo $item["id_usuario"]; ?>">Editar</a>
 <form class="excluir-usuario" method="post" onsubmit="return confirm('Deseja excluir este usuário?')">
 <input type="hidden" name="acao" value="excluir">
 <input type="hidden" name="id_excluir" value="<?php echo $item["id_usuario"]; ?>">
