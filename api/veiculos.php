@@ -1,7 +1,8 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-function responder($codigo, $dados) {
+function responder($codigo, $dados)
+{
     http_response_code($codigo);
     echo json_encode($dados, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
@@ -41,7 +42,7 @@ try {
     if (!($objeto instanceof stdClass)) {
         responder(400, ['erro' => 'JSON inválido: informe um objeto.']);
     }
-    $dados = (array)$objeto;
+    $dados = (array) $objeto;
 
     foreach (['id_usuario', 'marca', 'modelo', 'ano', 'preco'] as $campo) {
         if (!array_key_exists($campo, $dados)) {
@@ -57,11 +58,13 @@ try {
     $modelo = $dados['modelo'];
     $foto = $dados['foto'] ?? null;
 
-    if ($idUsuario === false || $ano === false || $km === false ||
+    if (
+        $idUsuario === false || $ano === false || $km === false ||
         !is_string($marca) || trim($marca) === '' || strlen($marca) > 50 ||
         !is_string($modelo) || trim($modelo) === '' || strlen($modelo) > 50 ||
-        !is_numeric($preco) || !is_scalar($preco) || !is_finite((float)$preco) || (float)$preco <= 0 || (float)$preco > 99999999.99 ||
-        ($foto !== null && (!is_string($foto) || strlen($foto) > 255))) {
+        !is_numeric($preco) || !is_scalar($preco) || !is_finite((float) $preco) || (float) $preco <= 0 || (float) $preco > 99999999.99 ||
+        ($foto !== null && (!is_string($foto) || strlen($foto) > 255))
+    ) {
         responder(400, ['erro' => 'Dados do veículo inválidos.']);
     }
 
@@ -72,8 +75,8 @@ try {
         responder(400, ['erro' => 'Usuário informado não existe.']);
     }
 
-    $dao->inserir($idUsuario, trim($marca), trim($modelo), $ano, (float)$preco, $km, $foto);
-    $novoId = (int)$conexao->lastInsertId();
+    $dao->inserir($idUsuario, trim($marca), trim($modelo), $ano, (float) $preco, $km, $foto);
+    $novoId = (int) $conexao->lastInsertId();
     responder(201, ['mensagem' => 'Veículo cadastrado com sucesso.', 'id_veiculo' => $novoId, 'veiculo' => $dao->buscarPorId($novoId)]);
 } catch (PDOException $erro) {
     error_log('Erro na API de veículos: ' . $erro->getMessage());

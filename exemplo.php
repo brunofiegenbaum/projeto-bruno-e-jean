@@ -36,6 +36,7 @@ try {
     $conexao->rollBack();
     echo "Teste concluído. Dados originais mantidos.";
 } catch (Exception $erro) {
-    if ($conexao->inTransaction()) $conexao->rollBack();
+    if ($conexao->inTransaction())
+        $conexao->rollBack();
     echo "Erro: " . $erro->getMessage();
 }

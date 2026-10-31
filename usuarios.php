@@ -39,41 +39,63 @@ $usuarios = $dao->listar();
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
-<head><meta charset="UTF-8"><title>Usuários - Bruno e Jean</title><link rel="stylesheet" href="style.css"></head>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Usuários - Bruno e Jean</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
 <body>
-<header><h2>Bruno e Jean - Projeto Semestre</h2><nav><a href="index.php">Início</a> | <a href="usuarios.php">Usuários</a> | <a href="anunciar.php">Cadastrar veículo</a></nav></header>
-<main>
-<h1><?php echo $usuario ? "Editar usuário" : "Cadastrar usuário"; ?></h1>
-<?php if ($usuario) { ?><p><a href="usuarios.php">Cancelar edição</a></p><?php } ?>
-<?php if ($mensagem != "") echo "<p>" . htmlspecialchars($mensagem) . "</p>"; ?>
-<form method="post">
-<input type="hidden" name="id" value="<?php echo $usuario["id_usuario"] ?? 0; ?>">
-<label>Nome</label>
-<input type="text" name="nome" required maxlength="100" value="<?php echo htmlspecialchars($usuario["nome"] ?? ""); ?>">
-<label>E-mail</label>
-<input type="email" name="email" required maxlength="100" value="<?php echo htmlspecialchars($usuario["email"] ?? ""); ?>">
-<button type="submit">Salvar usuário</button>
-</form>
-<h2>Usuários cadastrados</h2>
-<?php if (count($usuarios) == 0) { ?>
-<p>Nenhum usuário cadastrado.</p>
-<?php } else { ?>
-<table>
-<tr><th>Nome</th><th>E-mail</th><th>Ações</th></tr>
-<?php foreach ($usuarios as $item) { ?>
-<tr>
-<td><?php echo htmlspecialchars($item["nome"]); ?></td>
-<td><?php echo htmlspecialchars($item["email"]); ?></td>
-<td class="acoes-usuario"><a class="botao-editar" href="usuarios.php?id=<?php echo $item["id_usuario"]; ?>">Editar</a>
-<form class="excluir-usuario" method="post" onsubmit="return confirm('Deseja excluir este usuário?')">
-<input type="hidden" name="acao" value="excluir">
-<input type="hidden" name="id_excluir" value="<?php echo $item["id_usuario"]; ?>">
-<button type="submit">Excluir</button>
-</form></td>
-</tr>
-<?php } ?>
-</table>
-<?php } ?>
-</main>
+    <header>
+        <h2>Bruno e Jean - Projeto Semestre</h2>
+        <nav><a href="index.php">Início</a> | <a href="usuarios.php">Usuários</a> | <a href="anunciar.php">Cadastrar
+                veículo</a></nav>
+    </header>
+    <main>
+        <h1><?php echo $usuario ? "Editar usuário" : "Cadastrar usuário"; ?></h1>
+        <?php if ($usuario) { ?>
+            <p><a href="usuarios.php">Cancelar edição</a></p><?php } ?>
+        <?php if ($mensagem != "")
+            echo "<p>" . htmlspecialchars($mensagem) . "</p>"; ?>
+        <form method="post">
+            <input type="hidden" name="id" value="<?php echo $usuario["id_usuario"] ?? 0; ?>">
+            <label>Nome</label>
+            <input type="text" name="nome" required maxlength="100"
+                value="<?php echo htmlspecialchars($usuario["nome"] ?? ""); ?>">
+            <label>E-mail</label>
+            <input type="email" name="email" required maxlength="100"
+                value="<?php echo htmlspecialchars($usuario["email"] ?? ""); ?>">
+            <button type="submit">Salvar usuário</button>
+        </form>
+        <h2>Usuários cadastrados</h2>
+        <?php if (count($usuarios) == 0) { ?>
+            <p>Nenhum usuário cadastrado.</p>
+        <?php } else { ?>
+            <table>
+                <tr>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Ações</th>
+                </tr>
+                <?php foreach ($usuarios as $item) { ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($item["nome"]); ?></td>
+                        <td><?php echo htmlspecialchars($item["email"]); ?></td>
+                        <td class="acoes-usuario"><a class="botao-editar"
+                                href="usuarios.php?id=<?php echo $item["id_usuario"]; ?>">Editar</a>
+                            <form class="excluir-usuario" method="post"
+                                onsubmit="return confirm('Deseja excluir este usuário?')">
+                                <input type="hidden" name="acao" value="excluir">
+                                <input type="hidden" name="id_excluir" value="<?php echo $item["id_usuario"]; ?>">
+                                <button type="submit">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </table>
+        <?php } ?>
+    </main>
 </body>
+
 </html>
