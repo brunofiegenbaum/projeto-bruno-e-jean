@@ -27,9 +27,13 @@ $veiculo = $dao->buscarPorId($id);
                 <p>Ano: <?php echo $veiculo["ano"]; ?></p>
                 <p>Quilometragem: <?php echo number_format($veiculo["quilometragem"], 0, ",", "."); ?> km</p>
                 <h2>R$ <?php echo number_format($veiculo["preco"], 2, ",", "."); ?></h2>
-                <a href="anunciar.php?id=<?php echo $id; ?>">Editar</a> |
-                <form method="post" action="excluir.php" onsubmit="return confirm('Excluir este veículo?')"><input
-                        type="hidden" name="id" value="<?php echo $id; ?>"><button type="submit">Excluir</button></form>
+                <div class="acoes-veiculo">
+                    <a class="botao-editar" href="anunciar.php?id=<?php echo $id; ?>">Editar</a>
+                    <form method="post" action="excluir.php" onsubmit="return confirm('Excluir este veículo?')">
+                        <input type="hidden" name="id" value="<?php echo $id; ?>">
+                        <button type="submit">Excluir</button>
+                    </form>
+                </div>
             </div>
         <?php } else { ?>
             <p>Veículo não encontrado.</p><?php } ?>

@@ -181,3 +181,40 @@ button {
 .acoes-usuario .excluir-usuario button {
     margin: 0;
 }
+
+/* Botoes lado a lado nos detalhes do veiculo */
+.acoes-veiculo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.acoes-veiculo form {
+    display: inline-block;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.acoes-veiculo .botao-editar,
+.acoes-veiculo button {
+    display: inline-block;
+    background: #386aaf;
+    color: white;
+    border: none;
+    border-radius: 2px;
+    padding: 8px 14px;
+    margin: 0;
+    font: inherit;
+    line-height: normal;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.acoes-veiculo .botao-editar:hover,
+.acoes-veiculo button:hover {
+    background: #477fc8;
+}
