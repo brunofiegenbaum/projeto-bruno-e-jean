@@ -1,5 +1,14 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Authorization, Content-Type');
+
+$metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if ($metodo === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
 
 function responder($codigo, $dados)
 {
@@ -15,7 +24,7 @@ if (!is_string($tokenEsperado) || $tokenEsperado === '') {
     responder(500, ['erro' => 'Autenticacao da API nao configurada.']);
 }
 
-$autorizacao = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+$autorizacao = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
 if ($autorizacao === '' && function_exists('getallheaders')) {
     foreach (getallheaders() as $nome => $valor) {
         if (strcasecmp($nome, 'Authorization') === 0) {
@@ -30,7 +39,6 @@ if (!is_string($autorizacao) || !preg_match('/^Bearer\s+(\S+)$/i', trim($autoriz
     responder(401, ['erro' => 'Token ausente ou invalido.']);
 }
 
-$metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (!in_array($metodo, ['GET', 'POST', 'PUT', 'DELETE'], true)) {
     header('Allow: GET, POST, PUT, DELETE');
     responder(405, ['erro' => 'Método não permitido.']);
@@ -73,14 +81,17 @@ try {
         }
     }
 
-    if (isset($_SERVER['CONTENT_TYPE']) && stripos($_SERVER['CONTENT_TYPE'], 'application/json') === false) {
-        responder(400, ['erro' => 'Envie os dados em JSON.']);
+    // Aceita corpo JSON ou formulario (application/x-www-form-urlencoded).
+    $corpo = file_get_contents('php://input');
+    $tipo = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
+    if ($tipo === 'application/x-www-form-urlencoded') {
+        parse_str($corpo, $dados);
+    } else {
+        $dados = json_decode($corpo, true);
+        if (!is_array($dados) || array_is_list($dados)) {
+            responder(400, ['erro' => 'JSON inválido: informe um objeto.']);
+        }
     }
-    $objeto = json_decode(file_get_contents('php://input'));
-    if (!($objeto instanceof stdClass)) {
-        responder(400, ['erro' => 'JSON inválido: informe um objeto.']);
-    }
-    $dados = (array) $objeto;
 
     foreach (['id_usuario', 'marca', 'modelo', 'ano', 'preco'] as $campo) {
         if (!array_key_exists($campo, $dados)) {
