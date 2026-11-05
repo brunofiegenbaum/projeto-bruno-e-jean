@@ -8,13 +8,34 @@ function responder($codigo, $dados)
     exit;
 }
 
+// Defina API_TOKEN no ambiente do Apache. Nao coloque o segredo no Git.
+$tokenEsperado = getenv('API_TOKEN');
+if (!is_string($tokenEsperado) || $tokenEsperado === '') {
+    error_log('API_TOKEN nao configurado.');
+    responder(500, ['erro' => 'Autenticacao da API nao configurada.']);
+}
+
+$autorizacao = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+if ($autorizacao === '' && function_exists('getallheaders')) {
+    foreach (getallheaders() as $nome => $valor) {
+        if (strcasecmp($nome, 'Authorization') === 0) {
+            $autorizacao = $valor;
+            break;
+        }
+    }
+}
+
+if (!is_string($autorizacao) || !preg_match('/^Bearer\s+(\S+)$/i', trim($autorizacao), $partes) || !hash_equals($tokenEsperado, $partes[1])) {
+    header('WWW-Authenticate: Bearer');
+    responder(401, ['erro' => 'Token ausente ou invalido.']);
+}
+
 $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (!in_array($metodo, ['GET', 'POST', 'PUT', 'DELETE'], true)) {
     header('Allow: GET, POST, PUT, DELETE');
     responder(405, ['erro' => 'Método não permitido.']);
 }
 
-// A autenticação Bearer será implementada no Commit 5.
 require_once __DIR__ . '/../conexao.php';
 require_once __DIR__ . '/../VeiculoDAO.php';
 $dao = new VeiculoDAO($conexao);
@@ -85,7 +106,7 @@ try {
         responder(400, ['erro' => 'Dados do veículo inválidos.']);
     }
 
-    // Confere a FK antes de inserir para devolver um erro de validação amigável.
+    // Confere a FK antes de inserir ou atualizar.
     $consulta = $conexao->prepare('SELECT id_usuario FROM usuarios WHERE id_usuario = ?');
     $consulta->execute([$idUsuario]);
     if (!$consulta->fetchColumn()) {
