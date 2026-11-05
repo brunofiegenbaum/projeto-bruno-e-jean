@@ -9,8 +9,8 @@ function responder($codigo, $dados)
 }
 
 $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-if (!in_array($metodo, ['GET', 'POST'], true)) {
-    header('Allow: GET, POST');
+if (!in_array($metodo, ['GET', 'POST', 'PUT', 'DELETE'], true)) {
+    header('Allow: GET, POST, PUT, DELETE');
     responder(405, ['erro' => 'Método não permitido.']);
 }
 
@@ -35,6 +35,23 @@ try {
         responder(200, $veiculo);
     }
 
+    if ($metodo === 'PUT' || $metodo === 'DELETE') {
+        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($id === false || $id === null) {
+            responder(400, ['erro' => 'ID inválido.']);
+        }
+
+        $veiculo = $dao->buscarPorId($id);
+        if (!$veiculo) {
+            responder(404, ['erro' => 'Veículo não encontrado.']);
+        }
+
+        if ($metodo === 'DELETE') {
+            $dao->excluir($id);
+            responder(200, ['mensagem' => 'Veículo excluído com sucesso.']);
+        }
+    }
+
     if (isset($_SERVER['CONTENT_TYPE']) && stripos($_SERVER['CONTENT_TYPE'], 'application/json') === false) {
         responder(400, ['erro' => 'Envie os dados em JSON.']);
     }
@@ -52,11 +69,11 @@ try {
 
     $idUsuario = filter_var($dados['id_usuario'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     $ano = filter_var($dados['ano'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1900]]);
-    $km = filter_var($dados['quilometragem'] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+    $km = filter_var($dados['quilometragem'] ?? ($veiculo['quilometragem'] ?? 0), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
     $preco = $dados['preco'];
     $marca = $dados['marca'];
     $modelo = $dados['modelo'];
-    $foto = $dados['foto'] ?? null;
+    $foto = $dados['foto'] ?? ($veiculo['foto'] ?? null);
 
     if (
         $idUsuario === false || $ano === false || $km === false ||
@@ -73,6 +90,11 @@ try {
     $consulta->execute([$idUsuario]);
     if (!$consulta->fetchColumn()) {
         responder(400, ['erro' => 'Usuário informado não existe.']);
+    }
+
+    if ($metodo === 'PUT') {
+        $dao->atualizar($id, $idUsuario, trim($marca), trim($modelo), $ano, (float) $preco, $km, $foto);
+        responder(200, ['mensagem' => 'Veículo atualizado com sucesso.', 'veiculo' => $dao->buscarPorId($id)]);
     }
 
     $dao->inserir($idUsuario, trim($marca), trim($modelo), $ano, (float) $preco, $km, $foto);
