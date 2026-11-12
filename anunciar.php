@@ -1,12 +1,12 @@
 <?php
-require_once "conexao.php";
-require_once "VeiculoDAO.php";
-require_once "UsuarioDAO.php";
-$dao = new VeiculoDAO($conexao);
-$usuarioDAO = new UsuarioDAO($conexao);
-$usuarios = $usuarioDAO->listar();
-$id = isset($_GET["id"]) ? (int) $_GET["id"] : 0;
-$veiculo = $id ? $dao->buscarPorId($id) : false;
+require_once "api_cliente.php";
+$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
+$veiculo = false;
+$usuarios = [];
+try {
+    $usuarios = chamarApi('usuarios');
+    if ($id > 0) $veiculo = chamarApi('veiculos', 'GET', null, ['id'=>$id]);
+} catch (RuntimeException $e) { $erro = $e->getMessage(); }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $id = (int) ($_POST["id"] ?? 0);
@@ -38,13 +38,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
     if ($erroFoto == "" && $quilometragem >= 0 && $id_usuario > 0 && $marca != "" && $modelo != "" && $ano >= 1900 && $preco > 0 && strlen($marca) <= 50 && strlen($modelo) <= 50) {
-        if ($id > 0) {
-            $dao->atualizar($id, $id_usuario, $marca, $modelo, $ano, $preco, $quilometragem, $foto);
-        } else {
-            $dao->inserir($id_usuario, $marca, $modelo, $ano, $preco, $quilometragem, $foto);
-        }
-        header("Location: index.php");
-        exit;
+        try {
+            $dados = ['id_usuario'=>$id_usuario, 'marca'=>$marca, 'modelo'=>$modelo, 'ano'=>$ano, 'preco'=>$preco, 'quilometragem'=>$quilometragem, 'foto'=>$foto];
+            chamarApi('veiculos', $id > 0 ? 'PUT' : 'POST', $dados, $id > 0 ? ['id'=>$id] : []);
+            header("Location: index.php");
+            exit;
+        } catch (RuntimeException $e) { $erroFoto = $e->getMessage(); }
     }
     $erro = $erroFoto != "" ? $erroFoto : "Preencha os campos corretamente.";
 }
