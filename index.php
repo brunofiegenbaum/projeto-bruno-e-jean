@@ -1,46 +1,11 @@
 <?php
-require_once "conexao.php";
-require_once "VeiculoDAO.php";
-$dao = new VeiculoDAO($conexao);
-$veiculos = $dao->listar();
+require_once "api_cliente.php";
 $busca = trim($_GET["busca"] ?? "");
 $ordem = $_GET["ordem"] ?? "recentes";
 $precoMaximo = $_GET["preco_maximo"] ?? "";
-
-if ($busca != "") {
-    $resultado = [];
-    foreach ($veiculos as $veiculo) {
-        $texto = $veiculo["marca"] . " " . $veiculo["modelo"];
-        if (stripos($texto, $busca) !== false) {
-            $resultado[] = $veiculo;
-        }
-    }
-    $veiculos = $resultado;
-}
-
-if ($precoMaximo !== "" && is_numeric($precoMaximo) && (float) $precoMaximo > 0) {
-    $resultado = [];
-    foreach ($veiculos as $veiculo) {
-        if ((float) $veiculo["preco"] <= (float) $precoMaximo) {
-            $resultado[] = $veiculo;
-        }
-    }
-    $veiculos = $resultado;
-}
-
-if ($ordem == "menor") {
-    usort($veiculos, function ($a, $b) {
-        return (float) $a["preco"] <=> (float) $b["preco"];
-    });
-} elseif ($ordem == "maior") {
-    usort($veiculos, function ($a, $b) {
-        return (float) $b["preco"] <=> (float) $a["preco"];
-    });
-} else {
-    usort($veiculos, function ($a, $b) {
-        return (int) $b["id_veiculo"] <=> (int) $a["id_veiculo"];
-    });
-}
+$erroApi = "";
+try { $veiculos = chamarApi('veiculos', 'GET', null, ['busca'=>$busca, 'ordem'=>$ordem, 'preco_maximo'=>$precoMaximo]); }
+catch (RuntimeException $e) { $veiculos = []; $erroApi = $e->getMessage(); }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br" data-tema="escuro">
@@ -90,14 +55,15 @@ if ($ordem == "menor") {
         <main class="conteudo-marketplace">
             <div class="titulo-listagem"><h1>Veículos à venda</h1><p><?php echo count($veiculos); ?> anúncio(s)</p></div>
 
-            <?php if (count($veiculos) == 0) { ?>
+            <?php if ($erroApi !== "") { ?><div class="mensagem-erro"><?php echo htmlspecialchars($erroApi, ENT_QUOTES, "UTF-8"); ?></div><?php } ?>
+            <?php if (count($veiculos) == 0 && $erroApi === "") { ?>
                 <div class="sem-anuncios">
                     
                     <h2>Nenhum veículo encontrado</h2>
                     <p>Experimente outros filtros ou veja todos os anúncios.</p>
                     <a class="botao-primario" href="index.php">Ver todos os veículos</a>
                 </div>
-            <?php } else { ?>
+            <?php } elseif (count($veiculos) > 0) { ?>
                 <div class="grade-veiculos">
                     <?php foreach ($veiculos as $veiculo) { ?>
                         <article class="cartao-veiculo">
