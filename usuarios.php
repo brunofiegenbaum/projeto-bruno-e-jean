@@ -1,41 +1,27 @@
 <?php
-require_once "conexao.php";
-require_once "UsuarioDAO.php";
-$dao = new UsuarioDAO($conexao);
+require_once "api_cliente.php";
 $mensagem = "";
-$id = isset($_GET["id"]) ? (int) $_GET["id"] : 0;
-$usuario = $id ? $dao->buscarPorId($id) : false;
-
-if ($_SERVER["REQUEST_METHOD"] == "POST" && ($_POST["acao"] ?? "") == "excluir") {
-    $idExcluir = (int) ($_POST["id_excluir"] ?? 0);
-    if ($idExcluir > 0) {
-        $verificar = $conexao->prepare("SELECT COUNT(*) FROM veiculos WHERE id_usuario = ?");
-        $verificar->execute([$idExcluir]);
-        if ($verificar->fetchColumn() > 0) {
-            $mensagem = "Este usuário possui veículos cadastrados. Exclua os veículos antes de excluir o usuário.";
-        } else {
-            $dao->excluir($idExcluir);
+$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
+$usuario = false;
+try {
+    if ($id > 0) $usuario = chamarApi('usuarios', 'GET', null, ['id'=>$id]);
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && ($_POST["acao"] ?? "") === "excluir") {
+        $idExcluir = (int)($_POST["id_excluir"] ?? 0);
+        if ($idExcluir > 0) {
+            chamarApi('usuarios', 'DELETE', null, ['id'=>$idExcluir]);
             header("Location: usuarios.php");
             exit;
         }
-    }
-} elseif ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = (int) ($_POST["id"] ?? 0);
-    $nome = trim($_POST["nome"] ?? "");
-    $email = trim($_POST["email"] ?? "");
-    if ($nome == "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $mensagem = "Informe um nome e um e-mail válido.";
-    } else {
-        if ($id > 0) {
-            $dao->atualizar($id, $nome, $email);
-        } else {
-            $dao->inserir($nome, $email);
-        }
+    } elseif ($_SERVER["REQUEST_METHOD"] === "POST") {
+        $id = (int)($_POST["id"] ?? 0);
+        $dados = ['nome'=>trim($_POST["nome"] ?? ""), 'email'=>trim($_POST["email"] ?? "")];
+        chamarApi('usuarios', $id > 0 ? 'PUT' : 'POST', $dados, $id > 0 ? ['id'=>$id] : []);
         header("Location: usuarios.php");
         exit;
     }
-}
-$usuarios = $dao->listar();
+} catch (RuntimeException $e) { $mensagem = $e->getMessage(); }
+try { $usuarios = chamarApi('usuarios'); }
+catch (RuntimeException $e) { $usuarios = []; $mensagem = $e->getMessage(); }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br" data-tema="escuro">
