@@ -6,6 +6,8 @@ $precoMaximo = $_GET["preco_maximo"] ?? "";
 $erroApi = "";
 try { $veiculos = chamarApi('veiculos', 'GET', null, ['busca'=>$busca, 'ordem'=>$ordem, 'preco_maximo'=>$precoMaximo]); }
 catch (RuntimeException $e) { $veiculos = []; $erroApi = $e->getMessage(); }
+$requisicaoAjax = isset($_GET['api_busca']) && $_GET['api_busca'] === '1';
+if ($requisicaoAjax) ob_start();
 ?>
 <!DOCTYPE html>
 <html lang="pt-br" data-tema="escuro">
@@ -15,6 +17,41 @@ catch (RuntimeException $e) { $veiculos = []; $erroApi = $e->getMessage(); }
     <title>Marketplace | Bruno e Jean</title>
     <link rel="stylesheet" href="style.css">
     <script src="tema.js" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const formulario = document.querySelector('form.filtros');
+        if (!formulario) return;
+        async function atualizarBusca(url, atualizarHistorico = true) {
+            const destino = new URL(url, window.location.href);
+            const requisicao = new URL(destino);
+            requisicao.searchParams.set('api_busca', '1');
+            const botao = formulario.querySelector('button[type="submit"]');
+            botao.disabled = true;
+            try {
+                const resposta = await fetch(requisicao, {headers: {'Accept': 'application/json'}});
+                if (!resposta.ok) throw new Error('Falha HTTP ' + resposta.status);
+                const dados = await resposta.json();
+                const pagina = new DOMParser().parseFromString(dados.html, 'text/html');
+                const conteudo = pagina.querySelector('main.conteudo-marketplace');
+                if (!conteudo) throw new Error('Resposta da busca inválida.');
+                document.querySelector('main.conteudo-marketplace').replaceWith(conteudo);
+                if (atualizarHistorico) history.pushState(null, '', destino);
+            } catch (erro) {
+                console.error('Erro ao buscar veículos pela API:', erro);
+                window.location.assign(destino.href);
+            } finally {
+                botao.disabled = false;
+            }
+        }
+        formulario.addEventListener('submit', evento => {
+            evento.preventDefault();
+            const url = new URL(formulario.action, window.location.href);
+            url.search = new URLSearchParams(new FormData(formulario)).toString();
+            atualizarBusca(url);
+        });
+        window.addEventListener('popstate', () => window.location.reload());
+    });
+    </script>
 </head>
 <body>
     <header class="cabecalho">
@@ -95,3 +132,13 @@ catch (RuntimeException $e) { $veiculos = []; $erroApi = $e->getMessage(); }
     </div>
 </body>
 </html>
+
+<?php
+// Resposta AJAX: a busca continua passando pela API REST no servidor.
+// O navegador enxerga esta requisição em Network > Fetch/XHR, sem receber o token.
+if ($requisicaoAjax) {
+    $html = ob_get_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['html' => $html], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+}
+?>
