@@ -1,9 +1,9 @@
 <?php
-require_once "conexao.php";
-require_once "VeiculoDAO.php";
-$dao = new VeiculoDAO($conexao);
-$id = isset($_GET["id"]) ? (int) $_GET["id"] : 0;
-$veiculo = $id > 0 ? $dao->buscarPorId($id) : false;
+require_once "api_cliente.php";
+$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
+$veiculo = false;
+try { if ($id > 0) $veiculo = chamarApi('veiculos', 'GET', null, ['id'=>$id]); }
+catch (RuntimeException $e) { if ($e->getCode() !== 404) $erroApi = $e->getMessage(); }
 ?>
 <!DOCTYPE html>
 <html lang="pt-br" data-tema="escuro">
@@ -26,6 +26,7 @@ $veiculo = $id > 0 ? $dao->buscarPorId($id) : false;
     </header>
     <main class="pagina-interna">
         <a class="link-voltar" href="index.php">Voltar aos anúncios</a>
+        <?php if (isset($erroApi)) { ?><div class="mensagem-erro"><?php echo htmlspecialchars($erroApi, ENT_QUOTES, "UTF-8"); ?></div><?php } ?>
         <?php if ($veiculo) { ?>
             <div class="detalhes-layout">
                 <section class="painel-foto">
