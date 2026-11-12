@@ -51,7 +51,16 @@ $dao = new VeiculoDAO($conexao);
 try {
     if ($metodo === 'GET') {
         if (!array_key_exists('id', $_GET)) {
-            responder(200, $dao->listar());
+            $lista = $dao->listar();
+            $busca = trim((string)($_GET['busca'] ?? ''));
+            $precoMaximo = $_GET['preco_maximo'] ?? '';
+            $ordem = $_GET['ordem'] ?? 'recentes';
+            if ($busca !== '') $lista = array_values(array_filter($lista, static fn($v) => stripos($v['marca'].' '.$v['modelo'], $busca) !== false));
+            if ($precoMaximo !== '' && is_numeric($precoMaximo) && (float)$precoMaximo > 0) $lista = array_values(array_filter($lista, static fn($v) => (float)$v['preco'] <= (float)$precoMaximo));
+            if ($ordem === 'menor') usort($lista, static fn($a,$b) => (float)$a['preco'] <=> (float)$b['preco']);
+            elseif ($ordem === 'maior') usort($lista, static fn($a,$b) => (float)$b['preco'] <=> (float)$a['preco']);
+            else usort($lista, static fn($a,$b) => (int)$b['id_veiculo'] <=> (int)$a['id_veiculo']);
+            responder(200, $lista);
         }
         $id = filter_var($_GET['id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($id === false) {
